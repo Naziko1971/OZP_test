@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ОЗП Информатика 5-11 - Текесбаева Назым</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+        
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background-color: #f0f9ff;
+            color: #0c4a6e;
+        }
+
+        .blue-card {
+            background: #ffffff;
+            border: 1px solid #bae6fd;
+            box-shadow: 0 4px 15px -3px rgba(186, 230, 253, 0.4);
+        }
+
+        .option-btn {
+            transition: all 0.2s ease;
+            border-width: 2px;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            transform: translateX(8px);
+            background-color: #f0f9ff;
+            border-color: #0ea5e9;
+        }
+
+        .fade-in { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .progress-bar { transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f0f9ff; }
+        ::-webkit-scrollbar-thumb { background: #bae6fd; border-radius: 10px; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+<div id="app-wrapper" class="max-w-5xl mx-auto w-full px-4 py-8 flex-grow">
+    <!-- Header (Hidden on Login) -->
+    <header id="main-header" class="hidden flex flex-col md:flex-row items-center justify-between mb-8 bg-white p-6 rounded-3xl shadow-sm border border-sky-100 gap-4">
+        <div class="flex items-center gap-4">
+            <div class="w-14 h-14 bg-sky-600 rounded-2xl flex items-center justify-center shadow-lg shadow-sky-200">
+                <i class="fas fa-university text-white text-2xl"></i>
+            </div>
+            <div>
+                <h1 class="text-xl font-extrabold text-sky-900 uppercase tracking-tight">Информатика ОЗП</h1>
+                <p id="user-display" class="text-sky-500 text-xs font-bold"></p>
+            </div>
+        </div>
+        <div class="flex items-center gap-3">
+            <button onclick="goHome()" class="px-4 py-2 bg-sky-50 text-sky-700 rounded-xl font-bold text-sm hover:bg-sky-100 transition-all">
+                <i class="fas fa-home mr-2"></i>Басты бет
+            </button>
+            <button onclick="logout()" class="w-10 h-10 flex items-center justify-center rounded-xl bg-rose-50 text-rose-600 hover:bg-rose-100 transition-colors">
+                <i class="fas fa-sign-out-alt"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- App Content -->
+    <div id="app-container"></div>
+</div>
+
+<!-- Footer -->
+<footer class="py-12 text-center border-t border-sky-100 bg-white/60 backdrop-blur-sm">
+    <div class="max-w-4xl mx-auto px-4">
+        <p class="text-sky-900 font-extrabold text-lg">Жоба авторы: Текесбаева Назым</p>
+        <p class="text-sky-700 text-sm italic font-medium mt-1">Аға оқытушы, Абай атындағы ҚазҰПУ</p>
+        <div class="flex justify-center gap-6 mt-6">
+            <div class="text-sky-400 text-[10px] uppercase tracking-widest">Білім беру технологиялары</div>
+            <div class="text-sky-400 text-[10px] uppercase tracking-widest">ОЗП/НКТ Дайындық</div>
+        </div>
+    </div>
+</footer>
+
+<script>
+// ТЕСТ ДЕРЕКТЕРІ (5-11 СЫНЫПТАР)
+const quizData = [
+  {
+    grade: "5-сынып",
+    levels: [
+      {
+        id: "5-1", levelName: "1-тарау: Компьютер және ақпарат", icon: "fa-desktop",
+        questions: [
+            { question: "Компьютердің 'миы' деп нені атаймыз?", options: ["Монитор", "Процессор", "Пернетақта", "Тінтуір"], correct: 1 },
+            { question: "Ақпаратты енгізу құрылғысын көрсетіңіз:", options: ["Монитор", "Принтер", "Сканер", "Құлаққап"], correct: 2 },
+            { question: "Ең кіші ақпарат өлшем бірлігі:", options: ["Байт", "Бит", "Килобайт", "Мегабайт"], correct: 1 },
+            { question: "1 байтта неше бит бар?", options: ["8", "10", "1024", "16"], correct: 0 },
+            { question: "Ақпаратты шығару құрылғысы:", options: ["Микрофон", "Монитор", "Сканер", "Тінтуір"], correct: 1 },
+            { question: "Компьютердің негізгі құрылғыларына не жатпайды?", options: ["Монитор", "Пернетақта", "Принтер", "Жүйелік блок"], correct: 2 },
+            { question: "Ақпаратты сақтау құрылғысы:", options: ["Модем", "Қатты диск (HDD)", "Процессор", "Дыбыс колонкалары"], correct: 1 },
+            { question: "Ақпараттың түрлерін көрсетіңіз:", options: ["Мәтіндік, дыбыстық, графикалық", "Қатты, сұйық", "Жақсы, жаман", "Түрлі-түсті"], correct: 0 },
+            { question: "Пернетақтадағы ең ұзын перне:", options: ["Enter", "Shift", "Бос орын (Space)", "Caps Lock"], correct: 2 },
+            { question: "Компьютерлік бағдарламалардың жиынтығы қалай аталады?", options: ["Hardware", "Software", "Internet", "Data"], correct: 1 }
+        ]
+      },
+      {
+          id: "5-2", levelName: "2-тарау: Интернетте жұмыс істеу", icon: "fa-search",
+          questions: [
+              { question: "Интернет беттерін қарауға арналған бағдарлама:", options: ["Браузер", "Антивирус", "Ойын", "Процессор"], correct: 0 },
+              { question: "Әлемдік желі қалай аталады?", options: ["LAN", "WWW", "USB", "RAM"], correct: 1 },
+              { question: "Іздеу жүйесін көрсетіңіз:", options: ["Word", "Google", "Paint", "Calculator"], correct: 1 },
+              { question: "Желідегі қауіпсіздік ережесі:", options: ["Бөтен адамға құпия сөзді айтпау", "Кез келген сілтемені ашу", "Атын жасырмау", "Ойын ойнау"], correct: 0 },
+              { question: "Электрондық поштаның таңбасы:", options: ["#", "*", "@", "&"], correct: 2 },
+              { question: "Интернеттегі ақпаратты жүктеу дегеніміз не?", options: ["Download", "Upload", "Delete", "Refresh"], correct: 0 },
+              { question: "Браузердің мысалы:", options: ["Excel", "Google Chrome", "PowerPoint", "Windows"], correct: 1 },
+              { question: "Желілік этикет деген не?", options: ["Интернет бағасы", "Желідегі сыпайылық ережелері", "Ойын ережесі", "Компьютер салмағы"], correct: 1 },
+              { question: "Интернетке қосылу құрылғысы:", options: ["Сканер", "Модем", "Принтер", "Джойстик"], correct: 1 },
+              { question: "Сайттың мекенжайы қай жерге жазылады?", options: ["Жұмыс үстеліне", "Адрестік жолаққа", "Word құжатына", "Себетке"], correct: 1 }
+          ]
+      },
+      {
+          id: "5-3", levelName: "3-тарау: Бағдарламалау (Scratch)", icon: "fa-cat",
+          questions: [
+              { question: "Scratch бағдарламасындағы кейіпкер қалай аталады?", options: ["Ойыншы", "Спрайт", "Актер", "Робот"], correct: 1 },
+              { question: "Ойын алаңы қалай аталады?", options: ["Үстел", "Сахна", "Бөлме", "Экран"], correct: 1 },
+              { question: "Спрайттың қимыл-қозғалысын басқаратын блоктар түсі:", options: ["Көк", "Сары", "Жасыл", "Қызыл"], correct: 0 },
+              { question: "Бағдарламаны іске қосу белгісі:", options: ["Қызыл шеңбер", "Жасыл жалауша", "Көк шаршы", "Сары жұлдыз"], correct: 1 },
+              { question: "Блоктарды біріктіру арқылы не жасалады?", options: ["Сурет", "Скрипт (код)", "Мәтін", "Кесте"], correct: 1 },
+              { question: "Цикл блогы қай бөлімде орналасқан?", options: ["Қозғалыс", "Басқару", "Дыбыс", "Сенсорлар"], correct: 1 },
+              { question: "Спрайтқа дыбыс қосу блогының түсі:", options: ["Қызғылт", "Күлгін", "Жасыл", "Көк"], correct: 1 },
+              { question: "Scratch-те сурет салу редакторы қалай аталады?", options: ["Word", "Графикалық редактор", "Excel", "Блокнот"], correct: 1 },
+              { question: "Спрайттың бағытын өзгерту үшін қай блок керек?", options: ["Бұрылу", "Жүру", "Сөйлеу", "Көріну"], correct: 0 },
+              { question: "Scratch бағдарламасының негізгі мақсаты:", options: ["Есеп шығару", "Алгоритмдік ойлауды дамыту және ойын жасау", "Мәтін теру", "Кино көру"], correct: 1 }
+          ]
+      },
+      {
+          id: "5-4", levelName: "4-тарау: Мәтіндік құжаттар", icon: "fa-file-word",
+          questions: [
+              { question: "Мәтіндік редакторды көрсетіңіз:", options: ["MS Paint", "MS Word", "MS Excel", "Scratch"], correct: 1 },
+              { question: "Мәтіннің сыртқы түрін өзгерту қалай аталады?", options: ["Редакциялау", "Пішімдеу (Форматтау)", "Сақтау", "Көшіру"], correct: 1 },
+              { question: "Қаріп өлшемі немен өлшенеді?", options: ["Сантиметр", "Кегль (пункт)", "Байт", "Пиксель"], correct: 1 },
+              { question: "Мәтінді көшіру пернелер тіркесі:", options: ["Ctrl+V", "Ctrl+C", "Ctrl+X", "Ctrl+Z"], correct: 1 },
+              { question: "Мәтінді қою (вставить) пернелер тіркесі:", options: ["Ctrl+C", "Ctrl+V", "Ctrl+A", "Ctrl+S"], correct: 1 },
+              { question: "Мәтінге сурет қою командасы:", options: ["Файл - Сақтау", "Кірістіру - Суреттер", "Түр - Масштаб", "Басты - Қаріп"], correct: 1 },
+              { question: "Мәтінді қалың (жирный) қылу батырмасы:", options: ["К", "Ж", "Ч", "А"], correct: 1 },
+              { question: "Құжатты сақтау командасы:", options: ["Ctrl+S", "Ctrl+P", "Ctrl+N", "Ctrl+O"], correct: 0 },
+              { question: "Жаңа жолға өту пернесі:", options: ["Space", "Enter", "Shift", "Alt"], correct: 1 },
+              { question: "Мәтіннің бағытын тегістеу түрлері:", options: ["Тек сол жақ", "Сол, оң, орта, ені бойынша", "Тек жоғары", "Тек төмен"], correct: 1 }
+          ]
+      },
+      {
+          id: "5-5", levelName: "5-тарау: Презентациялар", icon: "fa-file-powerpoint",
+          questions: [
+              { question: "Презентация жасау бағдарламасы:", options: ["Word", "PowerPoint", "Access", "Excel"], correct: 1 },
+              { question: "Презентацияның бір беті қалай аталады?", options: ["Құжат", "Слайд", "Кесте", "Кадр"], correct: 1 },
+              { question: "Презентацияны көрсетуді бастау пернесі:", options: ["F1", "F5", "F12", "Enter"], correct: 1 },
+              { question: "Слайдтардың дизайнын таңдау мәзірі:", options: ["Кірістіру", "Дизайн", "Түр", "Анимация"], correct: 1 },
+              { question: "Нысандарға қозғалыс беру эффектісі:", options: ["Ауысу", "Анимация", "Стиль", "Макет"], correct: 1 },
+              { question: "Презентация файлының кеңейтілімі:", options: [".docx", ".pptx", ".xlsx", ".txt"], correct: 1 },
+              { question: "Слайдқа дыбыс қосу қай мәзірде?", options: ["Басты", "Кірістіру", "Дизайн", "Шолу"], correct: 1 },
+              { question: "Көрсетілімді тоқтату пернесі:", options: ["Space", "Esc", "Shift", "End"], correct: 1 },
+              { question: "Слайдтар арасындағы ауысу эффектісі қай мәзірде?", options: ["Анимация", "Ауысулар (Переходы)", "Дизайн", "Түр"], correct: 1 },
+              { question: "Жаңа слайд құру пернелер тіркесі:", options: ["Ctrl+N", "Ctrl+M", "Ctrl+S", "Ctrl+C"], correct: 1 }
+          ]
+      }
+    ]
+  },
+  {
+    grade: "6-сынып",
+    levels: [
+      {
+          id: "6-1", levelName: "1-тарау: Компьютерлік жүйелер", icon: "fa-gears",
+          questions: [
+              { question: "Операциялық жүйенің қызметі:", options: ["Мәтін теру", "Компьютер құрылғылары мен бағдарламаларын басқару", "Сурет салу", "Интернетке қосылу"], correct: 1 },
+              { question: "Файлдық жүйе деген не?", options: ["Папкалар жиынтығы", "Деректерді сақтау мен ұйымдастыру тәртібі", "Вирус түрі", "Монитор түрі"], correct: 1 },
+              { question: "Компьютердің техникалық сипаттамасы қайда көрсетіледі?", options: ["Себетте", "Жүйе қасиеттерінде (Свойства системы)", "Браузерде", "Word-та"], correct: 1 },
+              { question: "Архивтеу бағдарламасы:", options: ["WinRAR", "Chrome", "Excel", "Paint"], correct: 0 },
+              { question: "Файл кеңейтілімі нені білдіреді?", options: ["Өлшемін", "Типін (түрін)", "Атын", "Күнін"], correct: 1 },
+              { question: "Компьютердің жұмысын тоқтатудың қауіпсіз жолы:", options: ["Тоқтан суыру", "Пуск - Жұмысты аяқтау", "Мониторды өшіру", "Enter пернесін басу"], correct: 1 },
+              { question: "Процессордың ядро саны неге әсер етеді?", options: ["Түсіне", "Жұмыс жылдамдығы мен өнімділігіне", "Салмағына", "Экран өлшеміне"], correct: 1 },
+              { question: "Сыртқы жад құрылғысы:", options: ["RAM", "Флеш-карта", "Процессор", "Кэш"], correct: 1 },
+              { question: "Драйвер деген не?", options: ["Ойын", "Құрылғыны басқаруға арналған бағдарлама", "Вирус", "Мәтіндік файл"], correct: 1 },
+              { question: "Операциялық жүйе түрлері:", options: ["Windows, Linux, MacOS", "Word, Excel, Access", "Intel, AMD", "JPG, MP3, AVI"], correct: 0 }
+          ]
+      },
+      {
+          id: "6-2", levelName: "2-тарау: Ақпараттық қауіпсіздік", icon: "fa-shield",
+          questions: [
+              { question: "Компьютерлік вирус не істей алады?", options: ["Компьютерді тазалайды", "Деректерді жояды немесе бүлдіреді", "Жылдамдықты арттырады", "Ойын орнатады"], correct: 1 },
+              { question: "Антивирус бағдарламасының міндеті:", options: ["Вирус жасау", "Вирусты табу және жою", "Интернетті өшіру", "Сурет салу"], correct: 1 },
+              { question: "Желідегі 'Буллинг' деген не?", options: ["Достық хат", "Қорқыту және қудалау", "Ойын түрі", "Жарнама"], correct: 1 },
+              { question: "Қауіпсіз құпия сөз қандай болуы керек?", options: ["12345", "Аты-жөні", "Әріптер, сандар және таңбалар жиынтығы", "Туған жылы"], correct: 2 },
+              { question: "Авторлық құқықты бұзу қалай аталады?", options: ["Плагиат", "Көшіру", "Жүктеу", "Сақтау"], correct: 0 },
+              { question: "Электрондық поштаға келген бейтаныс файлды не істеу керек?", options: ["Бірден ашу", "Ашпау және өшіру", "Досына жіберу", "Сақтап қою"], correct: 1 },
+              { question: "Компьютерлік этика нені реттейді?", options: ["Код жазуды", "Интернеттегі мінез-құлық нормаларын", "Жабдықтар бағасын", "Электр тоғын"], correct: 1 },
+              { question: "Жеке деректерге не жатады?", options: ["Ауа райы", "Аты-жөні, мекенжайы, құпия сөздері", "Ойын ережесі", "Математикалық формулалар"], correct: 1 },
+              { question: "Интернеттегі алаяқтық түрі:", options: ["Фишинг", "Браузинг", "Чаттинг", "Гейминг"], correct: 0 },
+              { question: "Ақпаратты қорғаудың ең қарапайым жолы:", options: ["Компьютерді сындыру", "Құпия сөз (пароль) қою", "Экранды жауып қою", "Интернетті өшіру"], correct: 1 }
+          ]
+      },
+      {
+          id: "6-3", levelName: "3-тарау: Python (Turtle графигі)", icon: "fa-turtle",
+          questions: [
+              { question: "Python-да Turtle модулін қосу командасы:", options: ["import math", "import turtle", "import time", "import random"], correct: 1 },
+              { question: "Тасбақаны алға жылжыту командасы:", options: ["backward()", "forward()", "right()", "left()"], correct: 1 },
+              { question: "Тасбақаны 90 градусқа оңға бұру:", options: ["right(90)", "left(90)", "go(90)", "turn(90)"], correct: 0 },
+              { question: "Қаламның түсін өзгерту командасы:", options: ["color()", "pencolor()", "bgcolor()", "fillcolor()"], correct: 1 },
+              { question: "Сызуды тоқтату (қаламды көтеру):", options: ["penup()", "pendown()", "clear()", "reset()"], correct: 0 },
+              { question: "Шеңбер сызу командасы:", options: ["square()", "circle()", "dot()", "oval()"], correct: 1 },
+              { question: "Тасбақаның жылдамдығын орнату:", options: ["speed()", "fast()", "move()", "run()"], correct: 0 },
+              { question: "Экранды тазалау командасы:", options: ["clear()", "clean()", "delete()", "hide()"], correct: 0 },
+              { question: "Тұйық фигураның ішін бояуды бастау:", options: ["begin_fill()", "end_fill()", "start_color()", "fill()"], correct: 0 },
+              { question: "Тасбақаны экранда жасыру командасы:", options: ["hideturtle()", "showturtle()", "invisible()", "gone()"], correct: 0 }
+          ]
+      },
+      {
+          id: "6-4", levelName: "4-тарау: Электрондық кестелер", icon: "fa-table-cells",
+          questions: [
+              { question: "Excel-де формула қай таңбадан басталады?", options: ["+", "-", "=", "*"], correct: 2 },
+              { question: "Ұяшықтың мекенжайы неден тұрады?", options: ["Тек саннан", "Баған әрпі мен жол санынан", "Тек әріптен", "Атынан"], correct: 1 },
+              { question: "Сандардың қосындысын табатын функция:", options: ["AVERAGE", "SUM", "MIN", "MAX"], correct: 1 },
+              { question: "Ұяшықтар ауқымы қалай белгіленеді?", options: ["A1-B10", "A1:B10", "A1;B10", "A1.B10"], correct: 1 },
+              { question: "Диаграмманың мақсаты:", options: ["Мәтін жазу", "Мәліметтерді графикалық түрде бейнелеу", "Есеп шығару", "Кесте құру"], correct: 1 },
+              { question: "Excel-де жұмыс кітабы неден тұрады?", options: ["Слайдтардан", "Парақтардан (Лист)", "Суреттерден", "Сөздерден"], correct: 1 },
+              { question: "Ұяшықтағы ең үлкен санды табу функциясы:", options: ["MAX", "MIN", "SUM", "COUNT"], correct: 0 },
+              { question: "Деректерді өсу немесе кему ретімен орналастыру:", options: ["Сүзгілеу", "Сұрыптау", "Көшіру", "Форматтау"], correct: 1 },
+              { question: "Excel файлының кеңейтілімі:", options: [".docx", ".xlsx", ".pptx", ".pdf"], correct: 1 },
+              { question: "Кестедегі деректерді талдау құралы:", options: ["Блокнот", "Электрондық кесте", "Презентация", "Браузер"], correct: 1 }
+          ]
+      },
+      {
+          id: "6-5", levelName: "5-тарау: Жобалау", icon: "fa-lightbulb",
+          questions: [
+              { question: "Жоба дегеніміз не?", options: ["Ойын", "Белгілі бір мақсатқа жетуге бағытталған іс-әрекеттер", "Кесте", "Сурет"], correct: 1 },
+              { question: "Жобаның бірінші кезеңі:", options: ["Қорытынды", "Жоспарлау және мақсат қою", "Орындау", "Бағалау"], correct: 1 },
+              { question: "Жобаның нәтижесі қалай аталады?", options: ["Алгоритм", "Өнім (Продукт)", "Дерек", "Код"], correct: 1 },
+              { question: "Жобаны қорғау (презентациялау) мақсаты:", options: ["Жасыру", "Нәтижені таныстыру", "Өшіру", "Сату"], correct: 1 },
+              { question: "Жобадағы топтық жұмыстың артықшылығы:", options: ["Жалғыз істеу", "Міндеттерді бөлісу және тиімділік", "Көп уақыт жұмсау", "Ұрысу"], correct: 1 },
+              { question: "Жобаның бюджеті деген не?", options: ["Уақыт", "Қаржылық шығындар мен ресурстар", "Қатысушылар тізімі", "Мақсат"], correct: 1 },
+              { question: "Жобаның өзектілігі нені білдіреді?", options: ["Түсін", "Маңыздылығы мен қажеттілігін", "Ұзындығын", "Бағасын"], correct: 1 },
+              { question: "Гипотеза деген не?", options: ["Шындық", "Болжам (тексерілуі тиіс пікір)", "Заң", "Қорытынды"], correct: 1 },
+              { question: "Жобаны бағалау критерийлері:", options: ["Тек түсі", "Сапасы, мақсатқа жетуі, жаңалығы", "Тек бағасы", "Парақ саны"], correct: 1 },
+              { question: "Жобаның соңғы кезеңі:", options: ["Мақсат қою", "Рефлексия және қорытынды", "Жоспарлау", "Зерттеу"], correct: 1 }
+          ]
+      }
+    ]
+  },
+  {
+    grade: "7-сынып",
+    levels: [
+      {
+          id: "7-1", levelName: "1-тарау: Компьютерлік жүйелер", icon: "fa-microchip",
+          questions: [
+              { question: "Компьютердің архитектурасы деген не?", options: ["Сыртқы түрі", "Құрылғылардың өзара байланысуы мен жұмыс істеу принципі", "Тек процессор", "Монитор аты"], correct: 1 },
+              { question: "Фон Нейман принципі бойынша компьютер неше бөліктен тұрады?", options: ["2", "4", "5", "8"], correct: 2 },
+              { question: "Процессордың тактілік жиілігі немен өлшенеді?", options: ["Байт", "Герц (Гц)", "Ватт", "Бит"], correct: 1 },
+              { question: "Ішкі жадқа не жатады?", options: ["HDD", "RAM, ROM", "Flash", "CD"], correct: 1 },
+              { question: "Магистральдық-модульдік принцип деген не?", options: ["Сымдарды қосу", "Құрылғылардың ортақ шина арқылы байланысуы", "Тек бір блок", "Желі"], correct: 1 },
+              { question: "Шинаның неше түрі бар (негізгі)?", options: ["1", "3 (дерек, мекенжай, басқару)", "5", "10"], correct: 1 },
+              { question: "Кэш-жадтың қызметі:", options: ["Мәңгі сақтау", "Процессор мен жедел жад арасындағы жылдамдықты теңестіру", "Вирус жою", "Интернет"], correct: 1 },
+              { question: "Қатты диск (HDD) қандай жадқа жатады?", options: ["Жедел", "Сыртқы", "Ішкі", "Уақытша"], correct: 1 },
+              { question: "Пернетақта бақылаушысы (контроллер) не істейді?", options: ["Сурет салады", "Басылған перне кодын жүйеге береді", "Музыка ойнатады", "Экранды өшіреді"], correct: 1 },
+              { question: "SSD мен HDD басты айырмашылығы:", options: ["Түсі", "Жұмыс жылдамдығы мен механикалық бөліктердің болмауы", "Өлшемі", "Бағасы (тек)"], correct: 1 }
+          ]
+      },
+      {
+          id: "7-2", levelName: "2-тарау: Желілер", icon: "fa-wifi",
+          questions: [
+              { question: "Жергілікті желі қалай аталады?", options: ["WAN", "LAN", "PAN", "MAN"], correct: 1 },
+              { question: "IP-мекенжай не үшін қажет?", options: ["Ойын ойнау үшін", "Желідегі компьютерді бірегей түрде анықтау үшін", "Сурет салу үшін", "Пароль ретінде"], correct: 1 },
+              { question: "Домендік атаулар жүйесі қалай аталады?", options: ["URL", "DNS", "HTTP", "FTP"], correct: 1 },
+              { question: "Интернеттегі ақпарат алмасу ережесі:", options: ["Заң", "Хаттама (Протокол)", "Ойын", "Браузер"], correct: 1 },
+              { question: "Желілік топологияның 'Жұлдызша' түрінде орталық құрылғы:", options: ["Принтер", "Хаб/Коммутатор", "Монитор", "Сканер"], correct: 1 },
+              { question: "WWW қысқартылған сөзінің мағынасы:", options: ["World Wide Web", "World West Web", "Web Web Web", "Work Wide Web"], correct: 0 },
+              { question: "Сымсыз желі технологиясы:", options: ["Ethernet", "Wi-Fi", "USB", "VGA"], correct: 1 },
+              { question: "Браузердің адрестік жолағындағы 'http' нені білдіреді?", options: ["Сайт атын", "Дерек алмасу хаттамасын", "Суретті", "Вирусты"], correct: 1 },
+              { question: "Клиент-сервер технологиясы деген не?", options: ["Тек екі компьютер", "Бір компьютер (сервер) қызмет көрсетеді, екіншісі (клиент) пайдаланады", "Ойын", "Сымсыз байланыс"], correct: 1 },
+              { question: "Желілік картаның (NIC) қызметі:", options: ["Сурет салу", "Компьютерді желіге қосу", "Есеп шығару", "Дыбыс шығару"], correct: 1 }
+          ]
+      },
+      {
+          id: "7-3", levelName: "3-тарау: Модельдеу", icon: "fa-project-diagram",
+          questions: [
+              { question: "Модель дегеніміз не?", options: ["Ойыншық", "Нақты нысанның, процестің қарапайым ұқсастығы", "Сурет", "Мәтін"], correct: 1 },
+              { question: "Ақпараттық модель түрлері:", options: ["Қатты, сұйық", "Ауызша, кестелік, графикалық, математикалық", "Жақсы, жаман", "Тек сурет"], correct: 1 },
+              { question: "Глобус - бұл модельдің қай түрі?", options: ["Ақпараттық", "Заттық (Материалдық)", "Математикалық", "Логикалық"], correct: 1 },
+              { question: "Кестелік модельге мысал:", options: ["Карта", "Сабақ кестесі", "Фотосурет", "Ертегі"], correct: 1 },
+              { question: "Графикалық модельге не жатады?", options: ["Формула", "Схема, карта, сызба", "Мәтін", "Дыбыс"], correct: 1 },
+              { question: "Модельдеудің басты мақсаты:", options: ["Нысанды зерттеу және қасиеттерін білу", "Ойын ойнау", "Нысанды жою", "Көшірме жасау (тек)"], correct: 0 },
+              { question: "Математикалық модель неден тұрады?", options: ["Суреттерден", "Формулалар мен теңдеулерден", "Сөздерден", "Дыбыстан"], correct: 1 },
+              { question: "Компьютерлік модель деген не?", options: ["Ойын", "Программалық ортада жасалған модель", "Монитор", "Пернетақта"], correct: 1 },
+              { question: "Модельдеу кезеңдеріне не жатпайды?", options: ["Мақсат қою", "Модельді құру", "Модельді тексеру", "Нысанды сату"], correct: 3 },
+              { question: "Иерархиялық модель түрі:", options: ["Тізім", "Ағаш тәріздес құрылым (Генеалогиялық ағаш)", "Кесте", "Шеңбер"], correct: 1 }
+          ]
+      },
+      {
+          id: "7-4", levelName: "4-тарау: Программалау (Python)", icon: "fa-code",
+          questions: [
+              { question: "Python-да айнымалыны бүтін санға айналдыру:", options: ["float()", "int()", "str()", "bool()"], correct: 1 },
+              { question: "print(10 // 3) нәтижесі:", options: ["3.33", "3", "1", "0"], correct: 1 },
+              { question: "print(10 % 3) нәтижесі:", options: ["3", "1", "0", "10"], correct: 1 },
+              { question: "Python-да 'және' логикалық операторы:", options: ["or", "and", "not", "is"], correct: 1 },
+              { question: "if шарты дұрыс болса, қай бөлім орындалады?", options: ["else", "if-тен кейінгі блок", "ешқайсысы", "қате шығады"], correct: 1 },
+              { question: "Python-да жолдық тип қалай аталады?", options: ["int", "float", "str", "boolean"], correct: 2 },
+              { question: "range(1, 5) қандай сандарды береді?", options: ["1, 2, 3, 4, 5", "1, 2, 3, 4", "0, 1, 2, 3, 4", "5, 4, 3, 2, 1"], correct: 1 },
+              { question: "Python-да теңдікті тексеру таңбасы:", options: ["=", "==", ":=", "=>"], correct: 1 },
+              { question: "Тізімді (list) қалай жасаймыз?", options: ["()", "{}", "[]", "<>"], correct: 2 },
+              { question: "Python-да түсініктеме (комментарий) таңбасы:", options: ["//", "/*", "#", "--"], correct: 2 }
+          ]
+      },
+      {
+          id: "7-5", levelName: "5-тарау: Ақпараттық қауіпсіздік (7)", icon: "fa-user-shield",
+          questions: [
+              { question: "Жеке деректерді қорғау заңы не үшін қажет?", options: ["Интернетті жабу үшін", "Адамның жеке құпиясын сақтау үшін", "Ойын ойнау үшін", "Ақша төлеу үшін"], correct: 1 },
+              { question: "Киберқылмыс деген не?", options: ["Компьютерде жұмыс істеу", "Интернет арқылы жасалатын қылмыстар", "Ойын ойнау", "Программа жазу"], correct: 1 },
+              { question: "Антивирус базасын неге жаңартып тұру керек?", options: ["Әдемі болу үшін", "Жаңа вирустарды тану үшін", "Интернетті жылдамдату үшін", "Орын босату үшін"], correct: 1 },
+              { question: "ЭЦП (Электрондық цифрлық қолтаңба) не үшін керек?", options: ["Сурет салуға", "Электрондық құжатты растауға", "Видео көруге", "Музыка тыңдауға"], correct: 1 },
+              { question: "Желідегі алаяқтыққа қалай тап болмауға болады?", options: ["Бәріне сену", "Күмәнді сайттарға кірмеу және деректерді бермеу", "Бәрін жүктеу", "Парольді жариялау"], correct: 1 },
+              { question: "Брандмауэрдің (Firewall) басты қызметі:", options: ["Вирус жасау", "Рұқсатсыз кіруден қорғау", "Мәтін теру", "Компьютерді тазалау"], correct: 1 },
+              { question: "Ақпаратты шифрлау қай салада зерттеледі?", options: ["Математика", "Криптография", "Биология", "Тарих"], correct: 1 },
+              { question: "Қоғамдық жердегі Wi-Fi желісінің қауіпі:", options: ["Бағасы қымбат", "Деректердің ұрлану қаупі жоғары", "Жылдамдығы баяу", "Түсі нашар"], correct: 1 },
+              { question: "Смартфонды қалай қорғауға болады?", options: ["Суға салу", "Графикалық кілт немесе биометрия қою", "Оны қолданбау", "Экранды сүрту"], correct: 1 },
+              { question: "Цифрлық гигиена деген не?", options: ["Қол жуу", "Желідегі қауіпсіздік ережелерін сақтау", "Компьютерді жуу", "Тінтуірді тазалау"], correct: 1 }
+          ]
+      }
+    ]
+  },
+  {
+      grade: "8-сынып",
+      levels: [
+          { id: "8-1", levelName: "1-тарау: Компьютер мен желілер", description: "Желі жылдамдығы мен сипаттамалары", icon: "fa-network-wired", questions: [{ question: "1 Кбит/с неше бит/с-ке тең?", options: ["100", "512", "1000", "1024"], correct: 2 }, { question: "Ақпаратты тасымалдау жылдамдығының бірлігі:", options: ["Байт", "Бит/с", "Герц", "Метр/с"], correct: 1 }, { question: "Желінің өткізу қабілеті деген не?", options: ["Компьютер саны", "Уақыт ішіндегі макс. дерек көлемі", "Кабель ұзындығы", "Сайт саны"], correct: 1 }, { question: "Сервер қызметі қандай?", options: ["Ойын ойнау", "Желілік ресурстарды басқару", "Мәтін теру", "Вирус жою"], correct: 1 }, { question: "Деректерді тасымалдау уақыты формуласы:", options: ["t = V * q", "t = V / q", "t = q / V", "t = V + q"], correct: 1 }, { question: "IP мекенжай неше бөліктен тұрады?", options: ["2", "4", "6", "8"], correct: 1 }, { question: "Жергілікті желі қысқартылуы:", options: ["WAN", "LAN", "PAN", "MAN"], correct: 1 }, { question: "DNS қызметі:", options: ["Вирус жою", "Доменді IP-ге айналдыру", "Файл жүктеу", "Пошта"], correct: 1 }, { question: "Сымсыз желі түрі:", options: ["VGA", "Ethernet", "Wi-Fi", "USB"], correct: 2 }, { question: "Желілік хаттама деген не?", options: ["Заң", "Ережелер жиынтығы", "Ойын", "Браузер"], correct: 1 }] },
+          { id: "8-2", levelName: "2-тарау: Ақпараттық қауіпсіздік", description: "Құпия сөз және криптография", icon: "fa-user-shield", questions: [{ question: "Күрделі құпия сөз критерийі:", options: ["Тек сандар", "Тек әріптер", "Бас әріптер, сандар, таңбалар", "Туған жылы"], correct: 2 }, { question: "Шифрлау мақсаты:", options: ["Көлемін азайту", "Рұқсатсыз оқудан қорғау", "Жылдамдық", "Жою"], correct: 1 }, { question: "Компьютерлік вирус деген не?", options: ["Қолданба", "Зиянкес бағдарлама", "Драйвер", "Антивирус"], correct: 1 }, { question: "Спам деген не?", options: ["Маңызды хат", "Жарнамалық қажетсіз хат", "Вирус түрі", "Пароль"], correct: 1 }, { question: "Криптографиялық әдіс:", options: ["Көшіру", "Шифрлау", "Архивтеу", "Жою"], correct: 1 }, { question: "Хештеу функциясы нәтижесі:", options: ["Сурет", "Мәтін қатары", "Видео", "Сан"], correct: 1 }, { question: "Антивирус түрі:", options: ["Браузер", "Детектор", "Ойын", "Сайт"], correct: 1 }, { question: "Фишинг мақсаты:", options: ["Көмек", "Дерек ұрлау", "Жөндеу", "Ойын"], correct: 1 }, { question: "Жеке деректер заңы не үшін?", options: ["Интернет жабу", "Деректерді қорғау", "Ойын", "Ақша"], correct: 1 }, { question: "Брандмауэр қызметі:", options: ["Сүзу", "Вирус жазу", "Сурет", "Мәтін"], correct: 0 }] },
+          { id: "8-3", levelName: "3-тарау: Электрондық кестелер", description: "Excel функциялары мен сілтемелер", icon: "fa-table", questions: [{ question: "Абсолюттік сілтеме:", options: ["A1", "$A$1", "A$1", "$A1"], correct: 1 }, { question: "COUNTIF функциясы қызметі:", options: ["Қосынды", "Шарты бар ұяшықтарды санау", "Орташа мән", "Максимум"], correct: 1 }, { question: "Excel-де формула неден басталады?", options: ["+", "@", "=", "#"], correct: 2 }, { question: "A1:C3 жазбасы нені білдіреді?", options: ["Үш ұяшық", "Ұяшықтар ауқымы", "Бөлу", "Қосу"], correct: 1 }, { question: "Деректерді іріктеу:", options: ["Сұрыптау", "Сүзгілеу", "Көшіру", "Жою"], correct: 1 }, { question: "AVERAGE функциясы:", options: ["Қосынды", "Орташа мән", "Сан", "Макс"], correct: 1 }, { question: "Диаграмма түрі:", options: ["Мәтін", "Гистограмма", "Код", "Файл"], correct: 1 }, { question: "Ұяшықты форматтау:", options: ["Жою", "Сыртқы түрін өзгерту", "Көшіру", "Тазалау"], correct: 1 }, { question: "Сұрыптау түрі:", options: ["Жақсы/Жаман", "Өсу/Кему", "Қызыл/Көк", "Жоқ"], correct: 1 }, { question: "Жұмыс парағы қалай аталады?", options: ["Лист", "Слайд", "Документ", "Кітап"], correct: 0 }] },
+          { id: "8-4", levelName: "4-тарау: Программалау (Python)", description: "Типтер мен шартты операторлар", icon: "fa-terminal", questions: [{ question: "Python-да бүтін сандық тип:", options: ["str", "float", "int", "bool"], correct: 2 }, { question: "if шартынан кейінгі таңба:", options: [";", ".", ":", ","], correct: 2 }, { question: "Мәлімет шығару командасы:", options: ["input()", "print()", "out()", "write()"], correct: 1 }, { question: "while циклі қашан орындалады?", options: ["Шарт ақиқат болғанда", "Шарт жалған болғанда", "Тек бір рет", "Ешқашан"], correct: 0 }, { question: "input() функциясы қай типте оқиды?", options: ["int", "str", "float", "bool"], correct: 1 }, { question: "range(5) нәтижесі:", options: ["1,2,3,4,5", "0,1,2,3,4", "0,1,2,3,4,5", "Жоқ"], correct: 1 }, { question: "else бөлімі қашан істейді?", options: ["Шарт дұрыс болса", "Шарт жалған болса", "Әрқашан", "Ешқашан"], correct: 1 }, { question: "== таңбасы мағынасы:", options: ["Меншіктеу", "Теңдікті тексеру", "Қосу", "Бөлу"], correct: 1 }, { question: "Тізім белгісі:", options: ["()", "[]", "{}", "<>"], correct: 1 }, { question: "Комментарий таңбасы:", options: ["//", "#", "/*", "--"], correct: 1 }] },
+          { id: "8-5", levelName: "5-тарау: Денсаулық пен қауіпсіздік", description: "Эргономика және гигиена", icon: "fa-heartbeat", questions: [{ question: "Монитор мен көз арақашықтығы:", options: ["20-30 см", "40-45 см", "60-70 см", "1 метр"], correct: 2 }, { question: "Көз шаршауын басу үшін:", options: ["Жылдам теру", "Жаттығулар жасау", "Экранды сүрту", "Ойын ойнау"], correct: 1 }, { question: "Эргономика мақсаты:", options: ["Жылдамдық", "Денсаулық сақтау", "Интернет", "Энергия үнемдеу"], correct: 1 }, { question: "Пернетақтада қол қалпы:", options: ["Тік", "90-100 градус иілген", "Төмен", "Жоғары"], correct: 1 }, { question: "Компьютердегі үзіліс жиілігі:", options: ["2 сағат", "45 минут", "3 сағат", "Жоқ"], correct: 1 }, { question: "Стулдың биіктігі:", options: ["Төмен", "Реттелетін болуы керек", "Өте жоғары", "Жоқ"], correct: 1 }, { question: "Бөлмені желдету:", options: ["Керек емес", "Міндетті түрде қажет", "Тек жазда", "Тек қыста"], correct: 1 }, { question: "Компьютерлік гигиена:", options: ["Жуу", "Деректерді тазалау және күтім", "Өшіру", "Жоқ"], correct: 1 }, { question: "Пернетақта тазалығы:", options: ["Маңызды", "Керек емес", "Тек сумен", "Жоқ"], correct: 0 }, { question: "Электр қауіпсіздігі:", options: ["Сымдарды ұстамау", "Бәрін қосу", "Ойын", "Жоқ"], correct: 0 }] }
+      ]
+  },
+  {
+      grade: "9-сынып",
+      levels: [
+          { id: "9-1", levelName: "1-тарау: Компьютерлік жүйелер", description: "Процессор және жад түрлері", icon: "fa-microchip", questions: [{ question: "Процессордың сипаттамасы:", options: ["Салмағы", "Тактілік жиілігі", "Түсі", "Өлшемі"], correct: 1 }, { question: "RAM қызметі:", options: ["Мәңгі сақтау", "Уақытша сақтау", "Архивтеу", "Жою"], correct: 1 }, { question: "BIOS қайда сақталады?", options: ["RAM", "ROM", "HDD", "SSD"], correct: 1 }, { question: "Кэш-жад міндеті:", options: ["Вирус жою", "Жылдамдықты арттыру", "Жою", "Желі"], correct: 1 }, { question: "Процессор разрядтылығы:", options: ["Өлшем", "Бір тактіде өңдейтін бит саны", "Баға", "Ядро"], correct: 1 }, { question: "SSD артықшылығы:", options: ["Баяу", "Жылдам", "Ауыр", "Ескі"], correct: 1 }, { question: "Материнкалық плата:", options: ["Қап", "Негізгі байланыс тақтасы", "Монитор", "Пернетақта"], correct: 1 }, { question: "Ядро саны неге әсер етеді?", options: ["Түске", "Өнімділікке", "Салмаққа", "Жоқ"], correct: 1 }, { question: "Сыртқы құрылғы қосу:", options: ["Порттар арқылы", "Жад арқылы", "Экран арқылы", "Жоқ"], correct: 0 }, { question: "Жүйелік блок құрамы:", options: ["Принтер", "Қоректендіру блогы, плата", "Сканер", "Тінтуір"], correct: 1 }] },
+          { id: "9-2", levelName: "2-тарау: Ақпараттық қауіпсіздік", description: "Құқық және қорғау әдістері", icon: "fa-lock", questions: [{ question: "Қауіпсіздік үштігі:", options: ["Жылдамдық, сапа, көлем", "Құпиялылық, тұтастық, қолжетімділік", "Түс, дыбыс, мәтін", "Жоқ"], correct: 1 }, { question: "Авторлық құқыққа не жатады?", options: ["Компьютер", "Бағдарламалар мен өнер", "Ақша", "Кабель"], correct: 1 }, { question: "Ақпарат тұтастығы деген не?", options: ["Құпиялық", "Бұрмаланудан қорғалуы", "Жылдамдық", "Көлем"], correct: 1 }, { question: "Брандмауэр міндеті:", options: ["Вирус", "Трафикті сүзу", "Сурет", "Мәтін"], correct: 1 }, { question: "Антивирус түрі:", options: ["Браузер", "Детектор", "Драйвер", "Редактор"], correct: 1 }, { question: "Плагиат деген не?", options: ["Ұрлық", "Авторлықты иелену", "Көшіру", "Жою"], correct: 1 }, { question: "Лицензиялық келісім:", options: ["Ойын", "Қолдану ережесі", "Сурет", "Мәтін"], correct: 1 }, { question: "Киберқылмыс:", options: ["Жұмыс", "Желідегі заң бұзушылық", "Ойын", "Жоқ"], correct: 1 }, { question: "Жеке деректерді қорғау:", options: ["Міндетті", "Керек емес", "Тек байларға", "Жоқ"], correct: 0 }, { question: "Хэш-функция:", options: ["Сурет", "Бірегей қатар", "Видео", "Жоқ"], correct: 1 }] },
+          { id: "9-3", levelName: "3-тарау: Модельдеу (3D)", description: "SketchUp негіздері", icon: "fa-cube", questions: [{ question: "SketchUp-та нысанды биіктету:", options: ["Move", "Push/Pull", "Scale", "Rotate"], correct: 1 }, { question: "Көк ось қай бағыт?", options: ["Ені", "Ұзындығы", "Биіктігі", "Тереңдігі"], correct: 2 }, { question: "SketchUp-та жылжыту пернесі:", options: ["S", "M", "R", "L"], correct: 1 }, { question: "3D модельдеу деген не?", options: ["Сурет салу", "Көлемді нысан жасау", "Мәтін", "Дыбыс"], correct: 1 }, { question: "Айналдыру құралы:", options: ["Q", "S", "M", "L"], correct: 0 }, { question: "Қызыл ось бағыты:", options: ["X", "Y", "Z", "Жоқ"], correct: 0 }, { question: "Масштабтау құралы:", options: ["S", "M", "P", "Q"], correct: 0 }, { question: "Кітапхана (Warehouse):", options: ["Кітаптар", "Дайын 3D модельдер", "Ойындар", "Видео"], correct: 1 }, { question: "SketchUp файлы:", options: [".jpg", ".skp", ".html", ".exe"], correct: 1 }, { question: "Нысанды өшіру:", options: ["Eraser", "Paint", "Move", "Жоқ"], correct: 0 }] },
+          { id: "9-4", levelName: "4-тарау: Программалау (Python)", description: "Тізімдер мен қателерді өңдеу", icon: "fa-code", questions: [{ question: "Қателерді өңдеу блогы:", options: ["if...else", "try...except", "while", "def"], correct: 1 }, { question: "Тізімнің соңына қосу әдісі:", options: ["add()", "insert()", "append()", "push()"], correct: 2 }, { question: "Кездейсоқ сандар модулі:", options: ["math", "random", "time", "os"], correct: 1 }, { question: "range(1, 6) неше рет қайталанады?", options: ["6", "5", "4", "1"], correct: 1 }, { question: "Жиын (set) жақшасы:", options: ["()", "[]", "{}", "<>"], correct: 2 }, { question: "Сөздік белгісі:", options: ["[]", "{}", "()", "Жоқ"], correct: 1 }, { question: "import math қызметі:", options: ["Ойын", "Математикалық функциялар", "Сурет", "Мәтін"], correct: 1 }, { question: "def түйінсөзі:", options: ["Айнымалы", "Функция анықтау", "Цикл", "Жоқ"], correct: 1 }, { question: "bool түрі:", options: ["Сан", "True/False", "Мәтін", "Жоқ"], correct: 1 }, { question: "Тізім индексі неден басталады?", options: ["1", "0", "-1", "Жоқ"], correct: 1 }] },
+          { id: "9-5", levelName: "5-тарау: Веб-жобалау (HTML)", description: "Тегтер мен веб-құрылым", icon: "fa-globe", questions: [{ question: "Кескін қою тегі:", options: ["<link>", "<img>", "<a>", "<src>"], correct: 1 }, { question: "<html> тегі мағынасы:", options: ["Тақырып", "Құжат басы", "Азат жол", "Сілтеме"], correct: 1 }, { question: "CSS-те түс өзгерту:", options: ["font-color", "color", "text-style", "bg"], correct: 1 }, { question: "Жолды үзу тегі:", options: ["<br>", "<hr>", "<b>", "<p>"], correct: 0 }, { question: "Гиперсілтеме тегі:", options: ["<img>", "<a>", "<h1>", "<p>"], correct: 1 }, { question: "<title> тегі қайда жазылады?", options: ["<body>", "<head>", "<footer>", "Жоқ"], correct: 1 }, { question: "CSS не үшін керек?", options: ["Логика", "Безендіру (Стиль)", "Сақтау", "Жоқ"], correct: 1 }, { question: "Кесте тегі:", options: ["<ul>", "<table>", "<ol>", "Жоқ"], correct: 1 }, { question: "Азат жол тегі:", options: ["<b>", "<p>", "<i>", "Жоқ"], correct: 1 }, { question: "Стильдерді сырттан қосу:", options: ["<meta>", "<link>", "<style>", "Жоқ"], correct: 1 }] }
+      ]
+  },
+  {
+      grade: "10-сынып",
+      levels: [
+          { id: "10-1", levelName: "1-тарау: Ақпараттық жүйелер", description: "АЖ құрылымы мен жіктелуі", icon: "fa-project-diagram", questions: [{ question: "Ақпараттық жүйе деген не?", options: ["Компьютер", "Ақпаратты өңдеу кешені", "Интернет", "ДҚ"], correct: 1 }, { question: "Техникалық қамтамасыз ету:", options: ["Заңдар", "Компьютерлер мен жабдықтар", "Адамдар", "Ойындар"], correct: 1 }, { question: "Ашық жүйе деген не?", options: ["Тегін", "Стандарттарға сәйкес жүйе", "Қорғалмаған", "Интернет"], correct: 1 }, { question: "Эксперттік жүйе мақсаты:", options: ["Ойын", "Шешім қабылдауға көмек", "Мәтін", "Монтаж"], correct: 1 }, { question: "АЖ деңгейлері:", options: ["Жақсы/Жаман", "Операциялық, тактикалық, стратегиялық", "Кіші/Үлкен", "Жоқ"], correct: 1 }, { question: "Деректер қоры АЖ-ның несі?", options: ["Миы", "Ақпараттық негізі", "Қабығы", "Жоқ"], correct: 1 }, { question: "Басқару жүйесі:", options: ["Тек программа", "Адам мен техника кешені", "Тек адам", "Жоқ"], correct: 1 }, { question: "Ақпараттық процесс:", options: ["Жинау, өңдеу, сақтау", "Тек жою", "Тек сурет", "Жоқ"], correct: 0 }, { question: "АЖ-ның өмірлік циклі:", options: ["1 күн", "Жоспарлаудан пайдалануға дейін", "Тек жасау", "Жоқ"], correct: 1 }, { question: "Автоматтандырылған АЖ:", options: ["Тек робот", "Адам қатысатын жүйе", "Тек табиғи", "Жоқ"], correct: 1 }] },
+          { id: "10-2", levelName: "2-тарау: Криптография", description: "ЭЦП және шифрлау әдістері", icon: "fa-fingerprint", questions: [{ question: "ЭЦП қол қою кілті:", options: ["Ашық", "Жабық", "Ортақ", "Ешқандай"], correct: 1 }, { question: "Тексеру кілті:", options: ["Жабық", "Ашық", "Құпия", "Жеке"], correct: 1 }, { question: "Симметриялық шифрлауда неше кілт?", options: ["1", "2", "3", "4"], correct: 0 }, { question: "Криптография деген не?", options: ["Жою", "Құпиялау әдістері", "Жөндеу", "Құрастыру"], correct: 1 }, { question: "Хештеу нәтижесі:", options: ["Тек сан", "Тұрақты ұзындықтағы қатар", "Сурет", "Видео"], correct: 1 }, { question: "Асимметриялық шифрлау:", options: ["1 кілт", "2 кілт (ашық/жабық)", "Жоқ", "Көп"], correct: 1 }, { question: "Шифрлау алгоритмі:", options: ["Заң", "Математикалық ереже", "Ойын", "Жоқ"], correct: 1 }, { question: "RSA алгоритмі қайда?", options: ["Ашық кілтті", "Симметриялық", "Хеш", "Жоқ"], correct: 0 }, { question: "Стеганография деген не?", options: ["Шифрлау", "Ақпаратты жасыру (сурет ішіне)", "Жою", "Жоқ"], correct: 1 }, { question: "Блоктық шифр:", options: ["Тек 1 бит", "Биттер тобын өңдеу", "Тек сурет", "Жоқ"], correct: 1 }] },
+          { id: "10-3", levelName: "3-тарау: Мәліметтер қоры (SQL)", description: "SQL сұраныстары мен ДҚ", icon: "fa-database", questions: [{ question: "Реляциялық ДҚ неден тұрады?", options: ["Папка", "Кестелер", "Мәтін", "Сурет"], correct: 1 }, { question: "SQL дерек таңдау командасы:", options: ["GET", "SELECT", "EXTRACT", "READ"], correct: 1 }, { question: "Бастапқы кілт (PK) міндеті:", options: ["Жасыру", "Бірегей анықтау", "Жою", "Сұрыптау"], correct: 1 }, { question: "Жаңа жазба қосу:", options: ["ADD", "INSERT INTO", "CREATE", "UPDATE"], correct: 1 }, { question: "Сүзгілеу операторы:", options: ["FROM", "ORDER BY", "WHERE", "GROUP BY"], correct: 2 }, { question: "ДҚБЖ (DBMS) деген не?", options: ["Программа", "Деректерді басқару жүйесі", "Файл", "Желі"], correct: 1 }, { question: "Кестенің бағаны қалай аталады?", options: ["Жазба", "Өріс", "Кілт", "Аты"], correct: 1 }, { question: "Сыртқы кілт (FK):", options: ["Кестелерді байланыстыру", "Жою", "Сақтау", "Жоқ"], correct: 0 }, { question: "UPDATE командасы:", options: ["Жою", "Жаңарту", "Таңдау", "Жоқ"], correct: 1 }, { question: "DELETE командасы:", options: ["Жаңарту", "Жою", "Таңдау", "Жоқ"], correct: 1 }] },
+          { id: "10-4", levelName: "4-тарау: Алгоритмдер", description: "Күрделілік пен іздеу алгоритмдері", icon: "fa-brain", questions: [{ question: "Тармақталу операторы:", options: ["while", "if", "for", "import"], correct: 1 }, { question: "Рекурсия деген не?", options: ["Цикл", "Өз-өзін шақыру", "Қате", "Енгізу"], correct: 1 }, { question: "Линейлі іздеу күрделілігі:", options: ["O(1)", "O(log n)", "O(n)", "O(n^2)"], correct: 2 }, { question: "Екілік іздеу қайда қолданылады?", options: ["Кез келген тізім", "Сұрыпталған тізім", "Жиын", "Сөздік"], correct: 1 }, { question: "Тізім ұзындығын анықтау:", options: ["size()", "count()", "len()", "length()"], correct: 2 }, { question: "Сұрыптау алгоритмі:", options: ["I/O", "Көпіршікті, жылдам", "Тек іздеу", "Жоқ"], correct: 1 }, { question: "Уақытша күрделілік:", options: ["Баға", "Орындалу уақыты мен қадамдар", "Жад", "Жоқ"], correct: 1 }, { question: "Алгоритм қасиеті:", options: ["Түсініксіздік", "Дискреттілік, детерминділік", "Шексіздік", "Жоқ"], correct: 1 }, { question: "Сызықтық алгоритм:", options: ["Тармақты", "Кезекпен орындалатын", "Циклді", "Жоқ"], correct: 1 }, { question: "Программалау тілі:", options: ["Аспап", "Алгоритмді жазу құралы", "Ойын", "Жоқ"], correct: 1 }] },
+          { id: "10-5", levelName: "5-тарау: Болашақ технологиялары", description: "Big Data, IoT және Blockchain", icon: "fa-atom", questions: [{ question: "Big Data сипаттамасы (3V):", options: ["Volume, Velocity, Variety", "Video, Voice, View", "Virtual, Visual, Vital", "Vast, Very, Valid"], correct: 0 }, { question: "Blockchain негізгі принципі:", options: ["Орталықтандыру", "Орталықсыздандыру және өзгермеу", "Тек банк", "Жылдамдық"], correct: 1 }, { question: "IoT (Заттар интернеті) деген не?", options: ["Компьютер желісі", "Заттардың интернет арқылы байланысы", "Жылдамдық", "Браузер"], correct: 1 }, { question: "Ақылды үй мысалы:", options: ["Кәдімгі есік", "Қашықтан басқару", "Кітап", "Үстел"], correct: 1 }, { question: "IaaS моделі:", options: ["Software", "Infrastructure", "Platform", "Database"], correct: 1 }, { question: "SaaS моделі:", options: ["Тек жад", "Программаны қызмет ретінде пайдалану", "Тек сым", "Жоқ"], correct: 1 }, { question: "Криптовалюта неге негізделген?", options: ["Алтынға", "Blockchain технологиясына", "Мұнайға", "Жоқ"], correct: 1 }, { question: "Смарт-қала:", options: ["Көне қала", "Жоғары технологиялы қала", "Ағаш қала", "Жоқ"], correct: 1 }, { question: "Жасанды интеллект не істейді?", options: ["Тек есептейді", "Адам ойлауын имитациялайды", "Тек сурет салады", "Жоқ"], correct: 1 }, { question: "Бұлттық сақтау:", options: ["Диск", "Қашықтағы серверде сақтау", "Флешка", "Жоқ"], correct: 1 }] }
+      ]
+  },
+  {
+      grade: "11-сынып",
+      levels: [
+          { id: "11-1", levelName: "1-тарау: IT-Startup", description: "Lean Canvas және MVP", icon: "fa-rocket", questions: [{ question: "Lean Canvas неше блоктан тұрады?", options: ["5", "7", "9", "12"], correct: 2 }, { question: "MVP мағынасы:", options: ["Қымбат", "Минималды өміршең өнім", "Дайын", "Сатылмайтын"], correct: 1 }, { question: "Crowdfunding деген не?", options: ["Банк", "Халықтан ақша жинау", "Несие", "Сату"], correct: 1 }, { question: "B2C моделі мысалы:", options: ["Зауыттан зауытқа", "Дүкеннен жеке тұлғаға", "Мемлекетке", "OLX"], correct: 1 }, { question: "Идеяны тексеру:", options: ["Валидация", "Көшіру", "Жою", "Сату"], correct: 0 }, { question: "Стартап деген не?", options: ["Ескі зауыт", "Жаңа инновациялық жоба", "Тек дүкен", "Жоқ"], correct: 1 }, { question: "B2B моделі:", options: ["Бизнес - Бизнеске", "Бизнес - Адамға", "Адам - Адамға", "Жоқ"], correct: 0 }, { question: "Инкубатор мақсаты:", options: ["Жұмыртқа басу", "Стартаптарды қолдау мен дамыту", "Тек сату", "Жоқ"], correct: 1 }, { question: "Пивот (Pivot) деген не?", options: ["Тоқтау", "Стратегияны өзгерту", "Көшіру", "Жоқ"], correct: 1 }, { question: "Exit (шығу) деген не?", options: ["Есік", "Жобаны сату немесе IPO-ға шығу", "Жабу", "Жоқ"], correct: 1 }] },
+          { id: "11-2", levelName: "2-тарау: Мобильдік қосымшалар", description: "UX/UI Дизайн негіздері", icon: "fa-mobile-alt", questions: [{ question: "UX дизайны неге бағытталған?", options: ["Түске", "Ыңғайлылыққа", "Кодқа", "Серверге"], correct: 1 }, { question: "UI дизайны мақсаты:", options: ["Логика", "Сыртқы көрініс", "ДҚ", "Вирус"], correct: 1 }, { question: "Прототиптеу құралы:", options: ["Figma", "Excel", "Notepad", "Calculator"], correct: 0 }, { question: "Прототип деген не?", options: ["Дайын", "Алғашқы үлгі", "Код", "Ат"], correct: 1 }, { question: "Android тілі:", options: ["Swift", "Kotlin", "HTML", "SQL"], correct: 1 }, { question: "iOS тілі:", options: ["Java", "Swift", "Python", "Жоқ"], correct: 1 }, { question: "UX/UI айырмашылығы:", options: ["Жоқ", "Бірі тәжірибе, бірі көрініс", "Тек баға", "Жоқ"], correct: 1 }, { question: "Wireframe деген не?", options: ["Сым", "Қосымшаның қаңқасы (сызбасы)", "Экран", "Жоқ"], correct: 1 }, { question: "Мобильді қосымша:", options: ["Тек ойын", "Смартфонға арналған бағдарлама", "Тек браузер", "Жоқ"], correct: 1 }, { question: "Backend деген не?", options: ["Көрініс", "Серверлік логика мен деректер", "Сурет", "Жоқ"], correct: 1 }] },
+          { id: "11-3", levelName: "3-тарау: 3D және VR", description: "3D басып шығару және VR/AR", icon: "fa-vr-cardboard", questions: [{ question: "3D принтер файлы:", options: ["STL", "JPG", "MP3", "EXE"], correct: 0 }, { question: "VR мен AR айырмашылығы:", options: ["Жоқ", "VR - толық виртуалды, AR - толықтырылған", "Тек телефон", "Баға"], correct: 1 }, { question: "3D басып шығару коды:", options: ["Python", "G-code", "HTML", "Binary"], correct: 1 }, { question: "AR қазақша:", options: ["Жалған", "Толықтырылған шындық", "Виртуалды", "Ескі"], correct: 1 }, { question: "FDM деген не?", options: ["Лазер", "Қабаттастырып балқыту", "Кесу", "Сумен өңдеу"], correct: 1 }, { question: "3D модельді қалай жасайды?", options: ["Тек қолмен", "3D редакторларда (Blender т.б.)", "Тек фотомен", "Жоқ"], correct: 1 }, { question: "3D принтер қолдану саласы:", options: ["Тек ойын", "Медицина, сәулет, өнеркәсіп", "Тек баспа", "Жоқ"], correct: 1 }, { question: "VR көзілдірігі:", options: ["Тек әйнек", "Дисплейі бар арнайы құрылғы", "Тек сурет", "Жоқ"], correct: 1 }, { question: "Толықтырылған шындық мысалы:", options: ["Тек кино", "Pokemon GO, фильтрлер", "Тек кітап", "Жоқ"], correct: 1 }, { question: "Slicing (тілімдеу) деген не?", options: ["Кесу", "3D модельді қабаттарға бөлу", "Жою", "Жоқ"], correct: 1 }] },
+          { id: "11-4", levelName: "4-тарау: Жасанды интеллект", description: "Turing Test және ML", icon: "fa-robot", questions: [{ question: "ЖИ тесті:", options: ["IQ", "Тьюринг", "ЭКГ", "Стресс"], correct: 1 }, { question: "Нейрондық желі имитациясы:", options: ["Компьютер", "Адам миы", "Бұлшықет", "Жарық"], correct: 1 }, { question: "Машиналық оқыту:", options: ["Жөндеу", "Өздігінен үйрену", "Көшіру", "Мәтін"], correct: 1 }, { question: "Чат-бот деген не?", options: ["Тінтуір", "ЖИ арқылы сөйлесетін бағдарлама", "Экран", "Жоқ"], correct: 1 }, { question: "ЖИ қолдану саласы:", options: ["Ойын", "Медицина, тану", "Тек баспа", "Жоқ"], correct: 1 }, { question: "Data Science деген не?", options: ["Ойын", "Деректер туралы ғылым", "Тек кесте", "Жоқ"], correct: 1 }, { question: "Оқыту түрі (ML):", options: ["Тек мұғаліммен", "Мұғаліммен және мұғалімсіз", "Тек кітаппен", "Жоқ"], correct: 1 }, { question: "ЖИ-дің қауіпі:", options: ["Тек жарық", "Этикалық және қауіпсіздік мәселелері", "Тек салмақ", "Жоқ"], correct: 1 }, { question: "Deep Learning:", options: ["Терең оқыту", "Таяз оқыту", "Тек сурет", "Жоқ"], correct: 0 }, { question: "Биг Дата және ЖИ байланысы:", options: ["Жоқ", "ЖИ Биг Датаны өңдеу үшін керек", "Тек баға", "Жоқ"], correct: 1 }] },
+          { id: "11-5", levelName: "5-тарау: Цифрлық сауаттылық", description: "Этика және Құқық", icon: "fa-balance-scale", questions: [{ question: "Цифрлық із деген не?", options: ["Sалмақ", "Интернетте қалған деректер", "Із", "Sаң"], correct: 1 }, { question: "Желілік этикет:", options: ["Баға", "Сыпайылық ережелері", "Ойын", "Браузер"], correct: 1 }, { question: "Кибербуллинг:", options: ["Dостық", "Қудалау мен қорқыту", "Ойын", "Жоқ"], correct: 1 }, { question: "SMM мақсаты:", options: ["Жөндеу", "Әлеуметтік желіде жылжыту", "Вирус", "Қысу"], correct: 1 }, { question: "Деректерді қорғау заңы:", options: ["Ақша", "Жинау мен өңдеуді реттеу", "Сату", "Жоқ"], correct: 1 }, { question: "Цифрлық гигиена:", options: ["Sабын", "Қауіпсіздік дағдылары", "Тек су", "Жоқ"], correct: 1 }, { question: "Фейк ақпарат:", options: ["Шындық", "Жалған ақпарат", "Видео", "Жоқ"], correct: 1 }, { question: "Желілік құқық:", options: ["Тек заң", "Интернеттегі құқықтық нормалар", "Ойын", "Жоқ"], correct: 1 }, { question: "Цифрлық сауаттылық:", options: ["Тек жазу", "Технологияны тиімді қолдану білігі", "Тек оқу", "Жоқ"], correct: 1 }, { question: "Кибергигиена:", options: ["Компьютерді жуу", "Қауіпсіздік ережелерін сақтау", "Тек антивирус", "Жоқ"], correct: 1 }] }
+    ]
+  }
+];
+
+let state = {
+    view: 'login', // login, home, quiz, result
+    user: null,
+    currentLevelId: null,
+    currentIndex: 0,
+    score: 0,
+    selectedOption: null,
+    isAnswered: false,
+    userAnswers: [],
+    allResults: []
+};
+
+function render() {
+    const container = document.getElementById('app-container');
+    const header = document.getElementById('main-header');
+    container.innerHTML = '';
+    
+    if (state.view === 'login') {
+        header.classList.add('hidden');
+        renderLogin(container);
+    } else {
+        header.classList.remove('hidden');
+        document.getElementById('user-display').textContent = `Пайдаланушы: ${state.user.username}`;
+        
+        if (state.view === 'home') renderHome(container);
+        else if (state.view === 'quiz') renderQuiz(container);
+        else if (state.view === 'result') renderResult(container);
+    }
+    window.scrollTo(0, 0);
+}
+
+function renderLogin(container) {
+    container.innerHTML = `
+        <div class="fade-in flex flex-col items-center justify-center min-h-[70vh]">
+            <div class="blue-card p-10 md:p-14 rounded-[3rem] w-full max-w-md text-center bg-white/80 backdrop-blur-md">
+                <div class="w-24 h-24 bg-sky-600 text-white rounded-[2rem] flex items-center justify-center mx-auto mb-8 shadow-2xl shadow-sky-300">
+                    <i class="fas fa-user-lock text-4xl"></i>
+                </div>
+                <h2 class="text-3xl font-black text-sky-900 mb-2">Жүйеге кіру</h2>
+                <p class="text-sky-500 text-sm font-medium mb-10">Информатика ОЗП / НКТ дайындық</p>
+                
+                <div class="space-y-5 text-left">
+                    <div>
+                        <label class="block text-xs font-bold text-sky-700 uppercase mb-2 px-1 tracking-widest">Аты-жөніңіз</label>
+                        <input id="login-user" type="text" class="w-full p-4 rounded-2xl bg-sky-50/50 border-2 border-sky-100 focus:border-sky-500 focus:bg-white outline-none text-sky-900 transition-all font-semibold" placeholder="Мысалы: Арман Әлиев">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-sky-700 uppercase mb-2 px-1 tracking-widest">Құпия сөз</label>
+                        <input id="login-pass" type="password" class="w-full p-4 rounded-2xl bg-sky-50/50 border-2 border-sky-100 focus:border-sky-500 focus:bg-white outline-none text-sky-900 transition-all font-semibold" placeholder="********">
+                    </div>
+                </div>
+                
+                <button onclick="handleLogin()" class="w-full mt-10 py-5 bg-sky-600 text-white font-bold rounded-2xl hover:bg-sky-700 transition-all shadow-xl shadow-sky-200 text-lg">
+                    Тестті бастау
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+function renderHome(container) {
+    let html = '<div class="fade-in space-y-12 pb-16">';
+    
+    quizData.forEach((group) => {
+        html += `
+            <section class="space-y-6">
+                <div class="flex items-center gap-4 px-2">
+                    <div class="h-10 w-2 bg-sky-500 rounded-full shadow-sm"></div>
+                    <h2 class="text-xl font-black text-sky-900 uppercase tracking-tight">${group.grade}</h2>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    ${group.levels.map((level) => `
+                        <div onclick="startQuiz('${level.id}')" class="blue-card p-6 rounded-[2rem] cursor-pointer group flex items-center justify-between hover:border-sky-500 hover:bg-sky-50 transition-all duration-300">
+                            <div class="flex items-center gap-5">
+                                <div class="w-14 h-14 rounded-2xl bg-sky-100 text-sky-600 flex items-center justify-center group-hover:bg-sky-600 group-hover:text-white transition-all shadow-sm">
+                                    <i class="fas ${level.icon} text-xl"></i>
+                                </div>
+                                <div class="pr-4">
+                                    <h3 class="font-bold text-sky-900 text-lg leading-tight group-hover:text-sky-700 transition-colors">${level.levelName}</h3>
+                                    <p class="text-sky-500 text-[11px] mt-1.5 leading-relaxed font-medium">${level.description || 'Тарау бойынша тест сұрақтары'}</p>
+                                </div>
+                            </div>
+                            <div class="w-10 h-10 rounded-full bg-sky-50 flex items-center justify-center text-sky-400 group-hover:bg-sky-600 group-hover:text-white transition-all shrink-0">
+                                <i class="fas fa-play text-xs"></i>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </section>
+        `;
+    });
+    
+    html += '</div>';
+    container.innerHTML = html;
+}
+
+function renderQuiz(container) {
+    const level = findLevelById(state.currentLevelId);
+    const q = level.questions[state.currentIndex];
+    const progress = ((state.currentIndex + 1) / level.questions.length) * 100;
+
+    container.innerHTML = `
+        <div class="fade-in space-y-8">
+            <div class="space-y-4 px-2">
+                <div class="flex justify-between items-end">
+                    <span class="text-xs font-bold text-sky-600 uppercase tracking-widest">${level.levelName}</span>
+                    <span class="text-xs text-sky-400 font-bold tracking-tighter">Сұрақ ${state.currentIndex + 1} / ${level.questions.length}</span>
+                </div>
+                <div class="h-2 w-full bg-white rounded-full overflow-hidden border border-sky-100 shadow-inner">
+                    <div class="h-full bg-sky-500 progress-bar shadow-sm" style="width: ${progress}%"></div>
+                </div>
+            </div>
+
+            <div class="blue-card p-10 md:p-14 rounded-[3rem]">
+                <h2 class="text-xl md:text-2xl font-bold leading-relaxed mb-12 text-sky-900 border-l-4 border-sky-200 pl-6">${q.question}</h2>
+                <div class="space-y-4">
+                    ${q.options.map((opt, idx) => {
+                        let style = "bg-sky-50/30 border-sky-100 text-sky-800";
+                        let icon = "";
+                        if (state.isAnswered) {
+                            if (idx === q.correct) {
+                                style = "bg-emerald-50 border-emerald-500 text-emerald-700 ring-2 ring-emerald-500/20";
+                                icon = '<i class="fas fa-check-circle text-emerald-500 scale-125"></i>';
+                            } else if (idx === state.selectedOption) {
+                                style = "bg-rose-50 border-rose-500 text-rose-700 ring-2 ring-rose-500/20";
+                                icon = '<i class="fas fa-times-circle text-rose-500 scale-125"></i>';
+                            } else { style = "opacity-30 blur-[0.5px]"; }
+                        } else if (idx === state.selectedOption) { style = "bg-sky-100 border-sky-500 text-sky-900 ring-2 ring-sky-500/20"; }
+                        return `<button onclick="handleOptionSelect(${idx})" ${state.isAnswered ? 'disabled' : ''} class="option-btn w-full p-6 rounded-2xl border-2 text-left font-semibold flex items-center justify-between shadow-sm ${style}"><span>${opt}</span>${icon}</button>`;
+                    }).join('')}
+                </div>
+            </div>
+
+            <div class="flex flex-col md:flex-row justify-between items-center gap-6 pt-6">
+                <button onclick="goHome()" class="text-sky-400 hover:text-sky-700 font-bold text-xs transition-colors uppercase tracking-[0.2em] flex items-center">
+                    <i class="fas fa-arrow-left mr-3"></i> Бас мәзірге қайту
+                </button>
+                <button onclick="handleNext()" ${!state.isAnswered ? 'disabled' : ''} 
+                    class="w-full md:w-auto px-14 py-5 rounded-2xl font-bold bg-sky-600 text-white shadow-2xl shadow-sky-200 disabled:opacity-30 disabled:shadow-none transition-all flex items-center justify-center gap-4 text-lg">
+                    ${state.currentIndex === level.questions.length - 1 ? 'Нәтиже' : 'Келесі сұрақ'} <i class="fas fa-chevron-right text-sm"></i>
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+function renderResult(container) {
+    const level = findLevelById(state.currentLevelId);
+    const percent = Math.round((state.score / level.questions.length) * 100);
+    
+    container.innerHTML = `
+        <div class="fade-in text-center space-y-10">
+            <div class="blue-card p-12 md:p-16 rounded-[4rem] relative overflow-hidden">
+                <div class="w-24 h-24 bg-sky-100 text-sky-600 rounded-3xl flex items-center justify-center mx-auto mb-10 text-4xl shadow-inner">
+                    <i class="fas fa-award"></i>
+                </div>
+                <h2 class="text-4xl font-black mb-3 text-sky-900 tracking-tight">Керемет!</h2>
+                <p class="text-sky-500 font-bold mb-12 uppercase tracking-widest text-xs">"${level.levelName}" аяқталды</p>
+                <div class="flex justify-center items-center gap-12 md:gap-20">
+                    <div>
+                        <div class="text-6xl font-black text-sky-900 mb-3">${state.score}</div>
+                        <div class="text-[11px] font-bold text-sky-400 uppercase tracking-[0.3em]">Дұрыс</div>
+                    </div>
+                    <div class="w-px h-20 bg-sky-100"></div>
+                    <div>
+                        <div class="text-6xl font-black text-sky-600 mb-3">${percent}%</div>
+                        <div class="text-[11px] font-bold text-sky-400 uppercase tracking-[0.3em]">Жалпы</div>
+                    </div>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <button onclick="goHome()" class="w-full py-5 bg-sky-100 text-sky-700 font-black rounded-3xl hover:bg-sky-200 transition-all text-lg border-2 border-sky-200 shadow-sm">Бас мәзір</button>
+                <button onclick="downloadExcel()" class="w-full py-5 bg-emerald-600 text-white font-black rounded-3xl shadow-2xl shadow-emerald-200 hover:bg-emerald-700 transition-all flex items-center justify-center gap-3 text-lg">
+                    <i class="fas fa-file-excel"></i> Excel-де сақтау
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+// Logic functions
+function handleLogin() {
+    const user = document.getElementById('login-user').value.trim();
+    const pass = document.getElementById('login-pass').value.trim();
+    if (user && pass) {
+        state.user = { username: user };
+        state.view = 'home';
+        render();
+    } else {
+        alert("Аты-жөніңіз бен құпия сөзді толтырыңыз!");
+    }
+}
+
+function logout() {
+    state.user = null;
+    state.view = 'login';
+    render();
+}
+
+function goHome() {
+    state.view = 'home';
+    render();
+}
+
+function findLevelById(id) {
+    for (const group of quizData) {
+        const found = group.levels.find(l => l.id === id);
+        if (found) return found;
+    }
+    return null;
+}
+
+window.startQuiz = (id) => {
+    state = { ...state, view: 'quiz', currentLevelId: id, currentIndex: 0, score: 0, selectedOption: null, isAnswered: false, userAnswers: [] };
+    render();
+};
+
+window.handleOptionSelect = (idx) => {
+    if (state.isAnswered) return;
+    state.selectedOption = idx;
+    state.isAnswered = true;
+    const q = findLevelById(state.currentLevelId).questions[state.currentIndex];
+    if (idx === q.correct) state.score++;
+    state.userAnswers.push({ 
+        "Сұрақ": q.question, 
+        "Пайдаланушы жауабы": q.options[idx], 
+        "Дұрыс жауап": q.options[q.correct],
+        "Нәтиже": idx === q.correct ? "Дұрыс" : "Қате"
+    });
+    render();
+};
+
+window.handleNext = () => {
+    const level = findLevelById(state.currentLevelId);
+    if (state.currentIndex < level.questions.length - 1) {
+        state.currentIndex++;
+        state.isAnswered = false;
+        state.selectedOption = null;
+        render();
+    } else {
+        state.allResults.push({
+            "Студент": state.user.username,
+            "Күні": new Date().toLocaleString(),
+            "Тарау": level.levelName,
+            "Ұпай": state.score,
+            "Пайыз": Math.round((state.score / level.questions.length) * 100) + "%"
+        });
+        state.view = 'result';
+        render();
+    }
+};
+
+function downloadExcel() {
+    const level = findLevelById(state.currentLevelId);
+    const summary = [
+        {"Аты-жөні": state.user.username, "Сынақ": level.levelName, "Күні": new Date().toLocaleString(), "Жиынтық ұпай": state.score + "/" + level.questions.length, "Пайыз": Math.round((state.score / level.questions.length) * 100) + "%"},
+        {},
+        {"Сұрақ": "Сұрақтар тізімі", "Пайдаланушы жауабы": "Жауап", "Дұрыс жауап": "Дұрыс", "Нәтиже": "Статус"}
+    ];
+    
+    const finalData = summary.concat(state.userAnswers);
+    const ws = XLSX.utils.json_to_sheet(finalData, { skipHeader: true });
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Нәтижелер");
+    XLSX.writeFile(wb, `${state.user.username}_${level.id}_ozp_test.xlsx`);
+}
+
+render();
+</script>
+
+</body>
+</html>
